@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">MapApp</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="toMap">idź do mapy</string>
+    <string name="toMain">ekran początkowy</string>
+    <string name="addToVisited">Dodaj to miejsce do listy odwiedzonych</string>
+</resources>
