@@ -42,17 +42,12 @@ public class DBHelper extends SQLiteOpenHelper{
         if(success==-1) throw new SQLiteConstraintException("Product already exists");
         return success!=-1;
     }
-//    public static boolean update(SQLiteDatabase db, String OldName, String NewName){
-//        ContentValues values=new ContentValues();
-//        values.put("Name",);
-//        int success = db.update(TablePlaces,values,"NAME = ?",new String[]{OldName});
-//        return success!=0;
-//    }
+
     public static int deleteWholeList(SQLiteDatabase db){
         int success=db.delete(TablePlaces,null,null);
         return success;
     }
-    public static Cursor getAllShoppings(SQLiteDatabase db){
+    public static Cursor getAllPlaces(SQLiteDatabase db){
         Cursor cursor=db.query(TablePlaces,null,null,null,null
                 ,null,null);
         return cursor;

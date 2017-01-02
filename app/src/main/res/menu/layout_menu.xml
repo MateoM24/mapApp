@@ -2,6 +2,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:title="@string/toMap"
-        android:id="@+id/toMainMenu"
+        android:id="@+id/toMap"
         />
 </menu>

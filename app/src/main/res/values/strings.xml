@@ -5,4 +5,5 @@
     <string name="toMap">idź do mapy</string>
     <string name="toMain">ekran początkowy</string>
     <string name="addToVisited">Dodaj to miejsce do listy odwiedzonych</string>
+    <string name="deleteHistory">Usuń całą historię</string>
 </resources>

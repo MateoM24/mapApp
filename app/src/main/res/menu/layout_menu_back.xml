@@ -2,6 +2,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:title="@string/toMain"
-        android:id="@+id/toMapOption"
+        android:id="@+id/toMain"
+        />
+    <item
+        android:title="@string/deleteHistory"
+        android:id="@+id/deleteHistory"
         />
 </menu>

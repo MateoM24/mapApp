@@ -1,7 +1,13 @@
 package mm.mapapp;
 
+import android.content.Intent;
+import android.database.Cursor;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -12,6 +18,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    private  DBHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,7 +28,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
     }
 
 
@@ -37,17 +43,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-        GoogleMap.OnMapClickListener onMapClickListener= new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng latLng) {
-                //popUpWindow zeby wpisac
-               // mMap.addMarker();
+        dbHelper=new DBHelper(this);
+        Cursor cursor=DBHelper.getAllPlaces(dbHelper.getReadableDatabase());
+        double latitude;
+        double longitude;
+        LatLng latLng;
+        String name;
+        String desc;
+        if (cursor!=null) {
+            while (cursor.moveToNext()) {
+                latitude = cursor.getDouble(3);
+                longitude = cursor.getDouble(4);
+                name = cursor.getString(1);
+                desc = cursor.getString(2);
+                latLng = new LatLng(latitude, longitude);
+                mMap.addMarker(new MarkerOptions().position(latLng).title(name).snippet(desc));
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             }
-        };
+        }
+        cursor.close();
+    }
+    @Override
+    public boolean onCreateOptionsMenu (Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.layout_menu_back, menu);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.toMain:
+                Intent intent=new Intent(this,MainActivity.class);
+                startActivity(intent);
+                return true;
+            case R.id.deleteHistory:
+                DBHelper.deleteWholeList(dbHelper.getWritableDatabase());
+                Intent intent2=new Intent(this,MainActivity.class);
+                startActivity(intent2);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 }

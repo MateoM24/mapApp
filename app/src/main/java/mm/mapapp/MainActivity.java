@@ -1,34 +1,39 @@
 package mm.mapapp;
 
-import android.app.Activity;
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteConstraintException;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Parcel;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.Manifest;
 
 public class MainActivity extends AppCompatActivity {
     LocationManager locMan;
     String provider;
     Criteria criteria;
+    EditText nameTV;
+    EditText descTV;
     TextView adressTV;
     static final int requestNumber=777;
     boolean accessGranted=true;
-    Activity act=this;
-
+    LocationListener locListener;
+    Location currentPosition;
+    String nazwa;
+    String opis;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,13 +41,59 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         locMan=(LocationManager)getSystemService(Context.LOCATION_SERVICE);
         criteria=new Criteria();
-        adressTV=(TextView)findViewById(R.id.adressTV);
+        nameTV=(EditText)findViewById(R.id.nameTV);
+        descTV=(EditText)findViewById(R.id.descTV);
+        nazwa="dodaj nazwę miejsca";
+        opis="dodaj opis";
+        nameTV.setText(nazwa);
+        descTV.setText(opis);
+        View.OnClickListener onClickListener=new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
 
+                if (((EditText)view).getText().toString()==nazwa||((EditText)view).getText().toString()==opis){
+                    ((EditText) view).setText("");
+                }
+            }
+        };
+        nameTV.setOnClickListener(onClickListener);
+        descTV.setOnClickListener(onClickListener);
+        adressTV=(TextView)findViewById(R.id.adressTV);
+        locListener=new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                currentPosition=location;
+                updatePositionView();
+            }
+
+            @Override
+            public void onStatusChanged(String s, int i, Bundle bundle) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String s) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String s) {
+
+            }
+        };
+    }
+    public void updatePositionView(){
+        String s = "szerokość geograficzna: "+currentPosition.getLatitude() + "\n długość geograficzna: " + currentPosition.getLongitude();
+        adressTV.setText(s);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        nazwa="dodaj nazwę miejsca";
+        opis="dodaj opis";
+        nameTV.setText(nazwa);
+        descTV.setText(opis);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             accessGranted=false;
             Toast.makeText(this, "trzeba włączyć uprawnienia", Toast.LENGTH_SHORT).show();
@@ -51,43 +102,19 @@ public class MainActivity extends AppCompatActivity {
                     requestNumber);
         }
         if(accessGranted) {
-            LocationListener locListener=new LocationListener() {
-                @Override
-                public void onLocationChanged(Location location) {
-                    onResume();
-                }
-
-                @Override
-                public void onStatusChanged(String s, int i, Bundle bundle) {
-
-                }
-
-                @Override
-                public void onProviderEnabled(String s) {
-
-                }
-
-                @Override
-                public void onProviderDisabled(String s) {
-
-                }
-            };
-
-            // teraz kontunuuj to https://developer.android.com/training/permissions/requesting.html
-            //trzeba metode co zwraca wynik z tego czy uzytkownik grantował akces...
-
+            //https://developer.android.com/training/permissions/requesting.html
             provider = locMan.getBestProvider(criteria, false);
             locMan.requestLocationUpdates(provider,0,0, locListener);
-            Location location = locMan.getLastKnownLocation(provider);
-            if (location == null) { //jesli null to ustwia sztuczną pozycje na Kartagine w Kolumbii
+            currentPosition=locMan.getLastKnownLocation(provider);
+            if (currentPosition == null) { //jesli null to ustawia sztuczną pozycje na Kartagine w Kolumbii
                 Location loc = new Location(provider);
                 loc.setLatitude(10.24);
                 loc.setLongitude(75.30);
                 loc.setTime(System.currentTimeMillis());
-                location = loc;
-                Toast.makeText(this,"nie można było odczytać lokaluzacji, ustawiono przykłądową: Kartagina, Kolombia",Toast.LENGTH_SHORT).show();
+                currentPosition = loc;
+                Toast.makeText(this,"nie można było odczytać lokalizacji, ustawiono przykłądową: Kartagina, Kolumbia",Toast.LENGTH_SHORT).show();
             }
-            String s = "szerokość geograficzna: "+location.getLatitude() + "\n długość geograficzna: " + location.getLongitude();
+            String s = "szerokość geograficzna: "+currentPosition.getLatitude() + "\n długość geograficzna: " + currentPosition.getLongitude();
             adressTV.setText(s);
         }
     }
@@ -103,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
                           accessGranted=true;  //access granted
                 }else{
                     accessGranted=false; //access denied
+                    Toast.makeText(this,"brak uprawnień potrzebnych do działania",Toast.LENGTH_LONG).show();
                 }
             }
         }
@@ -118,12 +146,28 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.toMapOption:
+            case R.id.toMap:
                 Intent intent=new Intent(this,MapsActivity.class);
                 startActivity(intent);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+    public void addPlace(View v){
+        String newName=nameTV.getText().toString();
+        String newDesc=descTV.getText().toString();
+        if (newName==nazwa||newDesc==opis){
+            Toast.makeText(this,"dodaj nazwę i opis",Toast.LENGTH_LONG).show();
+        }else{
+            DBHelper dbHelper=new DBHelper(this);
+            try {
+                DBHelper.insert(dbHelper.getWritableDatabase(), newName, newDesc, currentPosition.getLatitude(), currentPosition.getLongitude());
+            }catch (SQLiteConstraintException e){
+                Toast.makeText(this,"To miejsce jest już na zaznaczone na mapie",Toast.LENGTH_LONG).show();
+            }
+        }
+        Intent intent=new Intent(this,MapsActivity.class);
+        startActivity(intent);
     }
 }
