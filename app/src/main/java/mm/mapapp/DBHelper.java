@@ -21,10 +21,11 @@ public class DBHelper extends SQLiteOpenHelper{
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         sqLiteDatabase.execSQL("CREATE TABLE "+ TablePlaces +
                 "(_id INTEGER PRIMARY KEY AUTOINCREMENT, "+
-                "NAME TEXT UNIQUE, "+
-                "DESCRIPTION TEXT," +
+                "NAME TEXT NOT NULL UNIQUE, "+
+                "DESCRIPTION TEXT NOT NULL," +
                 "LATITUDE NUMBER," +
-                "LONGITUDE NUMBER);");
+                "LONGITUDE NUMBER," +
+                "UNIQUE (LATITUDE,LONGITUDE));");
     }
 
     @Override
